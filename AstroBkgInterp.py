@@ -492,22 +492,18 @@ class AstroBkgInterp():
         newdata : 2D numpy array
             nan-interpolated copy of input array
         """
-
         m,n = data.shape
-        newdata = np.zeros_like(data)
+        newdata = np.copy(data)
 
         for j in range(m):
             for i in range(n):
                 if np.isnan(data[j,i]):
-                    
                     med = np.nanmedian(data[j-1:j+2,i-1:i+2])
-                    
-                    if med == np.nan:
+
+                    if np.isnan(med):
                         newdata[j,i] = 0
                     else:   
-                        newdata[j,i] = np.nanmedian(data[j-1:j+2,i-1:i+2])
-                else:
-                    newdata[j,i] = data[j,i]
+                        newdata[j,i] = med
 
         return newdata
     
