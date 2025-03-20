@@ -481,16 +481,24 @@ class AstroBkgInterp():
         return bkg
 
     def interp_nans(self, data):
-        """Interpolate the value of a NaN pixel using its neighbors.
+        """Interpolate NaN pixels using neighboring pixels.
+
+        Replaces NaN values in input data with a median of their
+        neighboring values in a 3x3 window centered around the NaN. If all
+        neighbors are NaN, the value is set to 0. Edge cases are handled to
+        ensure window does not go out of bounds.
         
         Parameters:
         -----------
         data : 2D numpy array
+            Input data containing NaNs.
         
         Returns:
         -----------
         newdata : 2D numpy array
-            nan-interpolated copy of input array
+            Modified copy of the input data where NaNs have been replaced
+            by either their local median or zero, where no valid neighbors
+            exist.
         """
         m,n = data.shape
         newdata = np.copy(data)
@@ -498,8 +506,14 @@ class AstroBkgInterp():
         for j in range(m):
             for i in range(n):
                 if np.isnan(data[j,i]):
-                    med = np.nanmedian(data[j-1:j+2,i-1:i+2])
+                    # Define bounds to avoid index errors
+                    j_min, j_max = max(j - 1, 0), min(j + 2, m)
+                    i_min, i_max = max(i - 1, 0), min(i + 2, n)
 
+                    # Compute median of neighbouring pixels, ignoring NaNs
+                    med = np.nanmedian(data[j_min:j_max, i_min:i_max])
+
+                    # Assign median, else zero if no valid neighbors
                     if np.isnan(med):
                         newdata[j,i] = 0
                     else:   
