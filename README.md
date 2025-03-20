@@ -20,5 +20,5 @@ conda activate abi_env
 
 Finally install the package using:
 ```
-pip install =e .
+pip install -e .
 ```
