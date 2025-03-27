@@ -219,6 +219,11 @@ class AstroBkgInterp():
         between each iteration of the polynomial fitting routine, based on
         the chosen `resolution` and divisibility of `dim - size`.
 
+        Note: If `dim - size` is a prime number and resolution is *not*
+        `high`, step size defaults to 1. This ensures fine-grained steps in
+        challenging cases. Otherwise, the largest factor of `dim - size`
+        that is within the allowed step range is chosen.
+
         Parameters
         ----------
         size : int
@@ -240,14 +245,6 @@ class AstroBkgInterp():
         ------
         ValueError:
             If the `resolution` is not one of `low`, `medium`, or `high`.
-
-        Notes
-        -----
-        - If `dim - size` is a prime number and resolution is **not**
-          `high`, step size defaults to 1. This ensures fine-grained steps
-          in challenging cases.
-        - Otherwise, the largest factor of `dim - size` that is within the
-          allowed step range is chosen.
 
         Example
         -------
@@ -531,12 +528,13 @@ class AstroBkgInterp():
         return conv_bkg
 
     def normalize_poly(self, bkg_poly, bkg_simple):
-        """Normalize polynomial fit with median fit.
+        """Normalize and blend polynomial fit with median fit.
 
-        Smoothes out the polynomial fit with the median fit to create a
-        combined normalized background image. The normalization is done by
-        rescaling the two background images to same range and then
-        multiplying them element-wise.
+        Smooths out the polynomial background using the median background
+        to create a combined normalized background image. The method
+        involves first normalizing both background images, multiplying them
+        element-wise and then rescaling back to the original polynomial
+        background range.
 
         Parameters:
         -----------
@@ -550,16 +548,18 @@ class AstroBkgInterp():
         combo : ndarray
             The 2D combined normalized background image.
         """
+        # Compute min and max for both backgrounds
         polymax = np.nanmax(bkg_poly)
         polymin = np.nanmin(bkg_poly)
         simplemax = np.nanmax(bkg_simple)
         simplemin = np.nanmin(bkg_simple)
 
-        # normalize the backgrounds based on their max and min values
+        # Normalize the backgrounds based on their max and min values
         norm1 = (bkg_poly - polymin) / (polymax- polymin)
         norm2 = (bkg_simple - simplemin) / (simplemax - simplemin)
 
-        # combine the normalized polynomial and simple backgrounds and scale by the polynomial maxmimum
+        # combine the normalized polynomial and simple backgrounds and
+        # scale by the polynomial maxmimum
         combo = (norm1 * norm2)
         combo *= (polymax-polymin)
         combo += simplemin
@@ -649,30 +649,50 @@ class AstroBkgInterp():
         return newdata
     
     def process(self,i):
-        
+        """Process slice to estimate and subtract the background.
+
+        Processes a single image or slice of a 3D image cube by applying
+        source masking, estimating the background depending on the selected
+        mode, and optionally propagates errors.
+
+        Parameters
+        ----------
+        i : int
+            Index of the slice to process, if the data is a 3D cube.
+
+        Returns
+        -------
+        diff : ndarray
+            The background-subtracted image.
+        bkg : ndarray
+            The estimated background.
+        masked_bkg : ndarray
+            The source masked image.
+
+        """
+        # Extract and process single 2D image
         if not self.is_cube:
             im = self.data
             im = self.interp_nans(im[0])
             if self.uncertainties:
                 err = self.err
         else:
-            im = self.data[int(i)].copy()
+            im = self.data[int(i)].copy() # Extract the i-th slice
             im = self.interp_nans(im)
             if self.uncertainties:
                 err =self.err[int(i)].copy()
 
         if self.fwhm is not None:
             self.aper_rad = int(np.ceil(self.fwhm_scale * self.fwhm[i]))
+
         if self.uncertainties:
             masked_err = self.mask_source(err, is_err=True)
             masked_err = np.array([masked_err])
 
-        #nanmask = np.ma.masked_where(im==0,im)
         masked_bkg = self.mask_source(im)
         masked_bkg = np.array([masked_bkg])
 
         if self.bkg_mode == 'polynomial':
-
             bkg, res = self.polyfit2d_cube(masked_bkg[0],self.k,self.bin_size)
             
             if self.uncertainties:
@@ -689,7 +709,7 @@ class AstroBkgInterp():
             bkg = masked_bkg[0]
 
         diff = im - bkg
-        
+
         if self.uncertainties:
             diff_err = np.sqrt(err**2 + bkg_err**2)
         else:
@@ -698,37 +718,37 @@ class AstroBkgInterp():
         return diff, bkg, masked_bkg#, diff_err#, masked_err, bkg_err
 
     def run(self, data, err=None):
-        """Run background subtraction.
+        """Run background subtraction on 2D or 3D image data.
 
-        Runs the background subtraction on the input data using the chosen
-        background subtraction method.
+        Runs the background estimation and subtraction on the input data,
+        optionally handling error propagation.
 
         Parameters
         ----------
         data: ndarray
             The 2D or 3D input data.
-        err :
-            Default is None.
+        err : ndarray, optional
+            The 2D or 3D uncertainty array associated with the data.
 
         Returns
         -------
         diff: ndarray
-            The 2D or 3D background-subtracted data.
+            The background-subtracted data.
         bkg: ndarray
-            The 2D or 3D background data.
+            The estimated background.
         masked_bkg: ndarray
-            The 2D or 3D source-masked data.
+            The source-masked data.
         """
-
-        
         if err is not None:
             self.err = err
             self.uncertainties = True
-        
+
+        # Print Inputs
         self.print_inputs()
 
         ndims = len(data.shape)
 
+        # Check if data is 3D cube or 2D image
         if ndims == 3:
             k = data.shape[0]
             masked_bkgs = np.zeros_like(data)
@@ -737,20 +757,20 @@ class AstroBkgInterp():
             errs = np.zeros_like(err)
             self.is_cube = True
         else:
+            # Convert 2D data to 3D format
             k = 1
             data = np.array([data])
             err = np.array([err])
 
-        # Loop over each slice.
         self.data = data
         if k == 1:
-            diffs, bkgs, masks, errs = self.process(0)#merrs, berrs 
+            diffs, bkgs, masks, errs = self.process(0)#merrs, berrs
         else:
+            # Process multiple slices in parallel using multiprocessing
             p = Pool(self.pool_size)
             idx = np.arange(k)
             # diffs, bkgs, masks = p.map(self.process,idx)
             results = p.map(self.process,idx)
-
             diffs,bkgs,masks = zip(*results)
             # results = np.array(results)
 
@@ -768,7 +788,7 @@ class AstroBkgInterp():
         # merr = np.array(merrs)
         # berr = np.array(berrs)
         
-
+        # If original input was 2D, return 2D outputs
         if not self.is_cube:
             masked_bkg = masked_bkg[0]
             err = err[0]
