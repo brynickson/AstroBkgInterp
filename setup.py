@@ -20,4 +20,6 @@ setup(name='AstroBkgInterp',
             'Source': 'https://github.com/brynickson/astrobkginterp',
             'Tracker': 'https://github.com/brynickson/astrobkginterp/issues'
       },
-      packages=find_packages(), install_requires=['astropy', 'matplotlib', 'photutils'])
+      packages=find_packages(), install_requires=['astropy', 'matplotlib',
+                                                  'photutils',
+                                                  'polarTransform'])
