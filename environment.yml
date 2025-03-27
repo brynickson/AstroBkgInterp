@@ -3,8 +3,12 @@
 # or, if you're not wanting to use the default env name:
 # conda env create --name <env_name> --file environment.yml
 
-name: abi_env
+name: abi_env_test
 dependencies:
   - astropy
+  - jupyter
   - matplotlib
   - photutils
+  - pip
+  - pip:
+      - polarTransform
