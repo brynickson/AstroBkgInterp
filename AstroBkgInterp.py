@@ -377,7 +377,7 @@ class AstroBkgInterp():
         """Interpolate the sky under the source.
 
         Uses linear interpolation to mask the source in the aperture region
-        using the median background in a user-defined annulus.
+        using the median background in the annulus.
 
         Parameters:
         -----------
@@ -395,13 +395,6 @@ class AstroBkgInterp():
         cartesianImage: ndarray
             The final background-interpolated image in cartesian
             coordinates.
-
-        Notes
-        -----
-        - The background values are interpolated radially and symmetrically.
-        - Handles uncertainty propagation when needed.
-        - Circular interpolation uses radial symmetry
-        - Elliptical interpolation uses elliptical symmetry with orientation.
         """
         # Ensure original data is not modified.
         cartesian_data = data.copy()
