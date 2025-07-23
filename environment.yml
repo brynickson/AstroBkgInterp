@@ -1,0 +1,14 @@
+# conda env create --file environment.yml
+# conda env update --file environment.yml
+# or, if you're not wanting to use the default env name:
+# conda env create --name <env_name> --file environment.yml
+
+name: abi_env
+dependencies:
+  - astropy
+  - jupyter
+  - matplotlib
+  - photutils
+  - pip
+  - pip:
+      - polarTransform
