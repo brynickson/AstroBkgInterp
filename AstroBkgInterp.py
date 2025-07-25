@@ -7,6 +7,7 @@
 # ===================
 
 # Native Imports
+import warnings
 import numpy as np
 import polarTransform
 # 3rd Party Imports
@@ -17,6 +18,7 @@ from numpy.polynomial.legendre import legval2d
 from multiprocessing import Pool
 from functools import reduce
 
+warnings.filterwarnings(action='ignore', message='All-NaN slice encountered')
 
 class AstroBkgInterp():
     """Astro Background Interpretation.
