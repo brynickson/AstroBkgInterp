@@ -615,7 +615,7 @@ class AstroBkgInterp():
         # Loop over each slice.
         self.data = data
         if k == 1:
-            diffs, bkgs, masks, errs = self.process(0)#merrs, berrs 
+            diffs, bkgs, masks = self.process(0)# errs, merrs, berrs
         else:
             p = Pool(self.pool_size)
             idx = np.arange(k)
