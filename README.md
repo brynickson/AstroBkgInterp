@@ -39,3 +39,11 @@ conda activate abi_env
 ```
 pip install -e .
 ```
+
+Getting Started
+---------------
+To help you get started with `AstroBkgInterp`, we have provided a series of
+hands-on tutorials. These notebooks walk you through applying the 
+package's tools and techniques to real datasets. Following them will give you the 
+skills to handle similar datasets, whether 2D or 3D data, or obtained from 
+other instruments or telescopes.
