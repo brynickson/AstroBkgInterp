@@ -12,15 +12,22 @@ Resolution Spectrometer (MRS).
 Installation
 ------------
 
-The following will create a new Conda environment with the required Python 
-packages:
+1. Clone the `AstroBkgInterp` repository:
+
+```
+git clone https://github.com/brynickson/AstroBkgInterp/
+cd AstroBkgInterp
+```
+
+2. Create a new Conda environment with the required Python packages:
 
 ```
 conda env create --file environment.yml
 conda activate abi_env
 ```
 
-Finally install the package using:
+3. Install the package using:
+
 ```
 pip install -e .
 ```
