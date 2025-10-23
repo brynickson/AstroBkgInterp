@@ -1,0 +1,45 @@
+# This CITATION.cff file was generated with cffinit.
+# Visit https://bit.ly/cffinit to generate yours today!
+
+cff-version: 1.2.0
+title: AstroBkgInterp
+message: 'If you use this software, please cite it using the metadata from this file.'
+type: software
+authors:
+  - given-names: Bryony
+    family-names: Nickson
+    email: bnickson@stsci.edu
+    affiliation: STScI
+    orcid: 'https://orcid.org/0000-0002-9915-1372'
+  - given-names: Michael
+    family-names: Engesser
+    email: mengesser@stsci.edu
+    affiliation: STScI
+    orcid: 'https://orcid.org/0000-0003-0209-674X'
+  - given-names: Justin
+    family-names: Pierel
+    email: jpierel@stsci.edu
+    affiliation: STScI
+    orcid: 'https://orcid.org/0000-0002-2361-7201'
+  - given-names: Kirsten
+    family-names: Larson
+    email: kilarson@stsci.edu
+    orcid: 'https://orcid.org/0000-0003-3917-6460'
+    affiliation: STScI
+repository-code: 'https://github.com/brynickson/AstroBkgInterp'
+abstract: >-
+  AstroBkgInterp is an open-source Python tool for robust background
+  estimation and subtraction in complex regions. It implements a flexible
+  source-masking and polynomial interpolation routines to model spatially
+  and spectrally varying backgrounds without relying on separate sky
+  exposures. The tool supports both 2D images and 3D data cubes (e.g.,
+  integral field spectroscopy), offering wavelength-dependant masking and
+  background modelling that account for PSF variations across spectral slices.
+  AstroBkgInterp is particularly effective in scenarios where traditional
+  background subtraction methods struggle, such as extended sources
+  embedded in structured backgrounds, IFU data with spatial-spectral
+  variability, and imaging data affected by instrumental gradients or
+  artifacts.
+license: GPL-3.0
+version: 1.0.0
+date-released: '2025-10-21'
