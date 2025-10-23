@@ -41,4 +41,5 @@ abstract: >-
   affected by instrumental gradients or artifacts.
 license: GPL-3.0
 version: 1.0.0
+doi: 10.5281/zenodo.17410170
 date-released: '2025-10-21'
