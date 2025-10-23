@@ -4,10 +4,18 @@ AstroBkgInterp: An Astronomical Background Estimation Tool
 
 
 AstroBkgInterp is a Python tool designed to provide robust, flexible background
-subtraction for sources observed on top of complex regions. It is a highly 
-parameterizable Python package that works for both single images and 
-3-dimensional data cubes, such as those produced by the JWST/MIRI Medium 
-Resolution Spectrometer (MRS).
+subtraction for sources observed on top of complex regions. It implements a 
+flexible source-masking and polynomial interpolation routines to model 
+spatially and spectrally varying backgrounds without relying on separate 
+sky exposures. The tool supports both 2D images and 3D data cubes (e.g., 
+integral field spectroscopy), offering wavelength-dependant masking and 
+background modelling that account for PSF variations across spectral slices. 
+
+AstroBkgInterp is particularly effective in scenarios where traditional 
+background subtraction methods struggle, such as extended sources embedded 
+in structured backgrounds, IFU data with spatial-spectral variability, and 
+imaging data affected by instrumental gradients or artifacts.
+
 
 Installation
 ------------
