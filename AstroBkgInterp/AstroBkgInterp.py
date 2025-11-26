@@ -154,7 +154,7 @@ class AstroBkgInterp():
             print(f"    Semi-major axis: {self.semi_major}\n"
                   f"    Semi-minor axis: {self.semi_minor}\n"
                   f"    Angle: {self.angle}")
-        if self.fwhm:
+        if self.fwhm is not None:
             print(f"    FWHM scaling: True")
         else:
             print(f"    FWHM scaling: False")
