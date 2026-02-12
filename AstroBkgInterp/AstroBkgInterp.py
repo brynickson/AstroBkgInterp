@@ -154,7 +154,7 @@ class AstroBkgInterp():
             print(f"    Semi-major axis: {self.semi_major}\n"
                   f"    Semi-minor axis: {self.semi_minor}\n"
                   f"    Angle: {self.angle}")
-        if self.fwhm:
+        if self.fwhm is not None:
             print(f"    FWHM scaling: True")
         else:
             print(f"    FWHM scaling: False")
@@ -357,22 +357,23 @@ class AstroBkgInterp():
 
                 # Calculate the fitted surface from the coefficients, c.
                 fit = np.sum(c[:, None, None] * np.array(self.get_basis(X, Y, max_order))
-                                .reshape(len(basis), *X.shape), axis=0)
-                
-                # errs = np.sum(r[:, None, None] * np.array(self.get_basis(X, Y, max_order))
-                #                 .reshape(len(basis), *X.shape), axis=0)
+                             .reshape(len(basis), *X.shape), axis=0)
+
+                errs = np.sum(r[:, None, None] * np.array(self.get_basis(X, Y, max_order))
+                              .reshape(len(basis), *X.shape), axis=0)
 
                 # Reconstruct fitted surface using polynomial coefficients
                 # and generated basis.
                 cube[count,j-size:j,i-size:i] = fit
-                # errcube[count,j-size:j,i-size:i] = errs
+                errcube[count,j-size:j,i-size:i] = errs
                 
                 count+=1
 
         # Compute median of all fitted surfaces along first axis
         fitted_bkg = np.nanmedian(cube,axis=0)
-        fitted_errs = np.ones_like(fitted_bkg)#np.nanmean(errcube,axis=0) # Mean Squared Error
-        
+        #fitted_errs = np.ones_like(fitted_bkg)
+        fitted_errs = np.nanmean(errcube,axis=0) # Mean Squared Error
+
         return fitted_bkg, fitted_errs
 
 
@@ -707,8 +708,8 @@ class AstroBkgInterp():
             diff_err = np.sqrt(err**2 + bkg_err**2)
         else:
             diff_err = None
-            
-        return diff, bkg, masked_bkg#, diff_err#, masked_err, bkg_err
+
+        return diff, bkg, masked_bkg, diff_err#, masked_err, bkg_err
 
     def run(self, data, err=None):
         """Run background subtraction on 2D or 3D image data.
@@ -743,28 +744,28 @@ class AstroBkgInterp():
 
         # Check if data is 3D cube or 2D image
         if ndims == 3:
-            k = data.shape[0]
+            nw = data.shape[0]
             masked_bkgs = np.zeros_like(data)
             bkgs = np.zeros_like(data)
             diffs = np.zeros_like(data)
             errs = np.zeros_like(err)
             self.is_cube = True
         else:
-            # Convert 2D data to 3D format
-            k = 1
+            nw = 1
             data = np.array([data])
             err = np.array([err])
 
         self.data = data
-        if k == 1:
+        if nw == 1:
             diffs, bkgs, masks, errs = self.process(0)#merrs, berrs
         else:
             # Process multiple slices in parallel using multiprocessing
             p = Pool(self.pool_size)
-            idx = np.arange(k)
+            idx = np.arange(nw)
             # diffs, bkgs, masks = p.map(self.process,idx)
-            results = p.map(self.process,idx)
-            diffs,bkgs,masks = zip(*results)
+            results = p.map(self.process, idx)
+
+            diffs, bkgs, masks, errs = zip(*results)
             # results = np.array(results)
 
             # diffs = results[:,0]
@@ -777,15 +778,17 @@ class AstroBkgInterp():
         masked_bkg = np.array(masks)
         bkg = np.array(bkgs)
         diff = np.array(diffs)
-        # err = np.array(errs)
+        err = np.array(errs)
         # merr = np.array(merrs)
         # berr = np.array(berrs)
         
         # If original input was 2D, return 2D outputs
         if not self.is_cube:
             masked_bkg = masked_bkg[0]
-            err = err[0]
-            # merr = merr[0]
-            # berr = berr[0]
 
-        return diff, bkg, masked_bkg#, err#,merr,berr
+            if self.uncertainties:
+                err = err[0]
+                # merr = merr[0]
+                # berr = berr[0]
+
+        return diff, bkg, masked_bkg, err#,merr,berr
